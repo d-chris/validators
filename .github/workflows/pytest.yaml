@@ -6,34 +6,39 @@ on:
       - develop/*
   workflow_dispatch:
 
+env:
+  PDM_CACHE_DIR: ${{ github.workspace }}/.cache/pdm
+
 jobs:
   style:
     runs-on: ubuntu-latest
-    env:
-      python_version: 3.8
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.8"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Set up Python ${{ env.python_version }}
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.python_version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Install pipx
         run: pipx --version || python -m pip install --user pipx
 
       - name: Install PDM
-        run: pipx install pdm --python ${{ env.python_version }}
+        run: pipx install pdm --python ${{ matrix.python-version }}
 
       - name: Cache PDM dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pdm
-          key: pdm-${{ runner.os }}-${{ env.python_version }}-${{ hashFiles('**/pdm.lock') }}
+          path: ${{ env.PDM_CACHE_DIR}}
+          key: pdm-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
           restore-keys: |
-            pdm-${{ runner.os }}-${{ env.python_version }}-
+            pdm-${{ runner.os }}-${{ matrix.python-version }}-
       
       - name: Install dependencies
         run: pdm install -G tooling -G crypto-eth-addresses
@@ -76,7 +81,7 @@ jobs:
       - name: Cache PDM dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pdm
+          path: ${{ env.PDM_CACHE_DIR}}
           key: pdm-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
           restore-keys: |
             pdm-${{ runner.os }}-${{ matrix.python-version }}-
@@ -115,7 +120,7 @@ jobs:
       - name: Cache PDM dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pdm
+          path: ${{ env.PDM_CACHE_DIR}}
           key: pdm-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
           restore-keys: |
             pdm-${{ runner.os }}-${{ matrix.python-version }}-
