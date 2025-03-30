@@ -6,9 +6,6 @@ on:
       - develop/*
   workflow_dispatch:
 
-env:
-  PDM_CACHE_DIR: ${{ github.workspace }}/.cache/pdm
-
 jobs:
   style:
     runs-on: ubuntu-latest
@@ -27,15 +24,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install pipx
+        shell: bash
         run: pipx --version || python -m pip install --user pipx
 
       - name: Install PDM
-        run: pipx install pdm --python ${{ matrix.python-version }}
+        id: pdm-cache
+        shell: bash
+        run: |
+          pipx install pdm --python ${{ matrix.python-version }}
+          echo "dir=$(pdm config cache_dir)" >> $GITHUB_OUTPUT
 
       - name: Cache PDM dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.PDM_CACHE_DIR}}
+          path: ${{ steps.pdm-cache.outputs.dir }}
           key: pdm-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
           restore-keys: |
             pdm-${{ runner.os }}-${{ matrix.python-version }}-
@@ -73,15 +75,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install pipx
+        shell: bash
         run: pipx --version || python -m pip install --user pipx
 
       - name: Install PDM
-        run: pipx install pdm --python ${{ matrix.python-version }}
+        id: pdm-cache
+        shell: bash
+        run: |
+          pipx install pdm --python ${{ matrix.python-version }}
+          echo "dir=$(pdm config cache_dir)" >> $GITHUB_OUTPUT
 
       - name: Cache PDM dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.PDM_CACHE_DIR}}
+          path: ${{ steps.pdm-cache.outputs.dir }}
           key: pdm-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
           restore-keys: |
             pdm-${{ runner.os }}-${{ matrix.python-version }}-
@@ -115,12 +122,16 @@ jobs:
         run: pipx --version || python -m pip install --user pipx
 
       - name: Install PDM
-        run: pipx install pdm --python ${{ matrix.python-version }}
+        id: pdm-cache
+        shell: bash
+        run: |
+          pipx install pdm --python ${{ matrix.python-version }}
+          echo "dir=$(pdm config cache_dir)" >> $GITHUB_OUTPUT
 
       - name: Cache PDM dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.PDM_CACHE_DIR}}
+          path: ${{ steps.pdm-cache.outputs.dir }}
           key: pdm-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
           restore-keys: |
             pdm-${{ runner.os }}-${{ matrix.python-version }}-
